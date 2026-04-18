@@ -1,11 +1,16 @@
 import { tabs } from "@/constants/data";
 import { Tabs } from "expo-router";
 import clsx from "clsx";
-import { Image, View } from "react-native";
+import { Image, View, type ImageSourcePropType } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { components,colors  } from "@/constants/theme";
 
 const tabBar = components.tabBar;
+
+type TabIconProps = {
+  focused: boolean;
+  icon: ImageSourcePropType;
+};
 
 const TabIcon = ({ focused, icon }: TabIconProps) => {
   return (
