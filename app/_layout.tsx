@@ -5,6 +5,7 @@ import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { tokenCache } from "@/lib/tokenCache";
+import { PostHogProvider } from "posthog-react-native";
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -41,19 +42,24 @@ export default function RootLayout() {
     }
 
     return (
-        <ClerkProvider
-            publishableKey={publishableKey}
-            tokenCache={tokenCache}
+        <PostHogProvider
+            apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY!}
+            options={{ host: process.env.EXPO_PUBLIC_POSTHOG_HOST }}
         >
-            <ClerkLoaded>
-                <StatusBar style="dark" />
-                <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="(tabs)" />
-                    <Stack.Screen name="(auth)" />
-                    <Stack.Screen name="onboarding" />
-                    <Stack.Screen name="subscriptions/[id]" />
-                </Stack>
-            </ClerkLoaded>
-        </ClerkProvider>
+            <ClerkProvider
+                publishableKey={publishableKey}
+                tokenCache={tokenCache}
+            >
+                <ClerkLoaded>
+                    <StatusBar style="dark" />
+                    <Stack screenOptions={{ headerShown: false }}>
+                        <Stack.Screen name="(tabs)" />
+                        <Stack.Screen name="(auth)" />
+                        <Stack.Screen name="onboarding" />
+                        <Stack.Screen name="subscriptions/[id]" />
+                    </Stack>
+                </ClerkLoaded>
+            </ClerkProvider>
+        </PostHogProvider>
     );
 }
