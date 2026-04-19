@@ -3,11 +3,11 @@ import { FlatList, Image, Text, View } from 'react-native';
 import dayjs from 'dayjs';
 import { SafeAreaView as RNSafeAreaView } from 'react-native-safe-area-context';
 import { styled } from 'nativewind';
+import { useUser } from '@clerk/clerk-expo';
 import images from '@/constants/images';
 import {
   HOME_BALANCE,
   HOME_SUBSCRIPTIONS,
-  HOME_USER,
   UPCOMING_SUBSCRIPTIONS,
 } from '@/constants/data';
 import { icons } from '@/constants/icons';
@@ -15,11 +15,37 @@ import { formatCurrency } from '@/lib/utils';
 import ListHeading from '@/components/ListHeading';
 import UpcomingSubscriptionCard from '@/components/UpcomingSubscriptionCard';
 import SubscriptionCard from '@/components/SubscriptionCard';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 const SafeAreaView = styled(RNSafeAreaView);
 
 export default function App() {
   const [expandedSubscriptionId, setExpandedSubscriptionId] = useState<string | null>(null);
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false);
+  const { user } = useUser();
+
+  useEffect(() => {
+    setAvatarLoadFailed(false);
+  }, [user?.imageUrl]);
+
+  const displayName = useMemo(() => {
+    if (!user) return 'Welcome';
+    const fullName = [user.firstName, user.lastName]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
+    return (
+      fullName ||
+      user.username ||
+      user.primaryEmailAddress?.emailAddress ||
+      'Welcome'
+    );
+  }, [user]);
+
+  const avatarSource =
+    user?.imageUrl && !avatarLoadFailed
+      ? { uri: user.imageUrl }
+      : images.avatar;
+
   return (
     <SafeAreaView className="flex-1 bg-background p-5">
         
@@ -29,10 +55,17 @@ export default function App() {
               <View className="home-header">
                 <View className="home-user">
                   <Image
-                    source={images.avatar}
+                    source={avatarSource}
                     className="home-avatar"
+                    onError={() => setAvatarLoadFailed(true)}
                   />
-                  <Text className="home-user-name">{HOME_USER.name}</Text>
+                  <Text
+                    className="home-user-name"
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {displayName}
+                  </Text>
                 </View>
                 <Image
                   source={icons.add}
@@ -62,7 +95,7 @@ export default function App() {
                     <Text className="home-empty-state">No upcoming renewal yet.</Text>
                   }
                 />
-                <ListHeading title="All Subscription" />
+                <ListHeading title="All Subscriptions" />
               </View>
             </>
           )}
