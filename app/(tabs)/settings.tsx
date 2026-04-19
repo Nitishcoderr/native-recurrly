@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
     ActivityIndicator,
+    Alert,
     Pressable,
     Text,
     View,
@@ -38,6 +39,12 @@ const Settings = () => {
         try {
             await signOut();
             router.replace(routes.signIn);
+        } catch (err) {
+            const message =
+                err instanceof Error && err.message
+                    ? err.message
+                    : "Something went wrong while signing you out. Please try again.";
+            Alert.alert("Couldn't sign out", message);
         } finally {
             setIsSigningOut(false);
         }

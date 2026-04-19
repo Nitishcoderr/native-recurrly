@@ -46,6 +46,7 @@ const SignUp = () => {
 
     const [errors, setErrors] = useState<FieldErrors>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isResending, setIsResending] = useState(false);
 
     const passwordRef = useRef<TextInput>(null);
 
@@ -173,7 +174,8 @@ const SignUp = () => {
     }, [code, isLoaded, isSubmitting, router, setActive, signUp]);
 
     const onResendCode = useCallback(async () => {
-        if (!isLoaded || resendCooldown > 0) return;
+        if (!isLoaded || isResending || resendCooldown > 0) return;
+        setIsResending(true);
         try {
             await signUp.prepareEmailAddressVerification({
                 strategy: "email_code",
@@ -182,8 +184,10 @@ const SignUp = () => {
             setErrors((prev) => ({ ...prev, form: null }));
         } catch (err) {
             setErrors({ form: clerkErrorMessage(err) });
+        } finally {
+            setIsResending(false);
         }
-    }, [isLoaded, resendCooldown, signUp, startResendCooldown]);
+    }, [isLoaded, isResending, resendCooldown, signUp, startResendCooldown]);
 
     return (
         <SafeAreaView className="auth-safe-area" edges={["top", "left", "right"]}>
@@ -241,19 +245,29 @@ const SignUp = () => {
                                     <Pressable
                                         accessibilityRole="button"
                                         onPress={onResendCode}
-                                        disabled={resendCooldown > 0}
+                                        disabled={
+                                            resendCooldown > 0 || isResending
+                                        }
+                                        accessibilityState={{
+                                            disabled:
+                                                resendCooldown > 0 ||
+                                                isResending,
+                                        }}
                                         className="items-center pt-1"
                                     >
                                         <Text
                                             className={
-                                                resendCooldown > 0
+                                                resendCooldown > 0 ||
+                                                isResending
                                                     ? "auth-link-copy"
                                                     : "auth-link"
                                             }
                                         >
-                                            {resendCooldown > 0
-                                                ? `Resend code in ${resendCooldown}s`
-                                                : "Resend code"}
+                                            {isResending
+                                                ? "Sending…"
+                                                : resendCooldown > 0
+                                                  ? `Resend code in ${resendCooldown}s`
+                                                  : "Resend code"}
                                         </Text>
                                     </Pressable>
                                 </View>
@@ -319,7 +333,7 @@ const SignUp = () => {
                                         }
                                         secureTextEntry={!showPassword}
                                         autoCapitalize="none"
-                                        autoComplete="password-new"
+                                        autoComplete="new-password"
                                         textContentType="newPassword"
                                         returnKeyType="done"
                                         editable={!isSubmitting}

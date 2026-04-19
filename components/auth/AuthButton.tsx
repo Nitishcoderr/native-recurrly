@@ -36,6 +36,7 @@ const AuthButton = ({
                     : "opacity-60"),
             )}
             {...pressableProps}
+            accessibilityLabel={loading ? label : undefined}
         >
             {loading ? (
                 <ActivityIndicator

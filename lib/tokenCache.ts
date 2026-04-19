@@ -11,8 +11,16 @@ const createTokenCache = (): TokenCache => ({
             }
             return item;
         } catch (error) {
-            console.error("SecureStore get item error:", error);
-            await SecureStore.deleteItemAsync(key);
+            console.error("SecureStore get item error:", { key, error });
+            try {
+                await SecureStore.deleteItemAsync(key);
+            } catch (deleteError) {
+                console.error("SecureStore delete item error after get failure:", {
+                    key,
+                    deleteError,
+                    originalGetError: error,
+                });
+            }
             return null;
         }
     },
