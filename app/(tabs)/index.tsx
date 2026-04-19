@@ -62,7 +62,7 @@ export default function App() {
                     <Text className="home-empty-state">No upcoming renewal yet.</Text>
                   }
                 />
-                <ListHeading title="All Subscription" />
+                <ListHeading title="All Subscriptions" />
               </View>
             </>
           )}
