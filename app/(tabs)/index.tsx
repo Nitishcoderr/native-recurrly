@@ -15,12 +15,17 @@ import { formatCurrency } from '@/lib/utils';
 import ListHeading from '@/components/ListHeading';
 import UpcomingSubscriptionCard from '@/components/UpcomingSubscriptionCard';
 import SubscriptionCard from '@/components/SubscriptionCard';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 const SafeAreaView = styled(RNSafeAreaView);
 
 export default function App() {
   const [expandedSubscriptionId, setExpandedSubscriptionId] = useState<string | null>(null);
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false);
   const { user } = useUser();
+
+  useEffect(() => {
+    setAvatarLoadFailed(false);
+  }, [user?.imageUrl]);
 
   const displayName = useMemo(() => {
     if (!user) return 'Welcome';
@@ -36,9 +41,10 @@ export default function App() {
     );
   }, [user]);
 
-  const avatarSource = user?.imageUrl
-    ? { uri: user.imageUrl }
-    : images.avatar;
+  const avatarSource =
+    user?.imageUrl && !avatarLoadFailed
+      ? { uri: user.imageUrl }
+      : images.avatar;
 
   return (
     <SafeAreaView className="flex-1 bg-background p-5">
@@ -51,6 +57,7 @@ export default function App() {
                   <Image
                     source={avatarSource}
                     className="home-avatar"
+                    onError={() => setAvatarLoadFailed(true)}
                   />
                   <Text
                     className="home-user-name"

@@ -1,7 +1,7 @@
 import { useSignUp } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import { styled } from "nativewind";
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
     KeyboardAvoidingView,
     Platform,
@@ -49,6 +49,18 @@ const SignUp = () => {
     const [isResending, setIsResending] = useState(false);
 
     const passwordRef = useRef<TextInput>(null);
+    const resendCooldownIntervalRef = useRef<ReturnType<
+        typeof setInterval
+    > | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (resendCooldownIntervalRef.current != null) {
+                clearInterval(resendCooldownIntervalRef.current);
+                resendCooldownIntervalRef.current = null;
+            }
+        };
+    }, []);
 
     const clearFieldError = (field: keyof FieldErrors) => {
         if (errors[field] || errors.form) {
@@ -57,11 +69,18 @@ const SignUp = () => {
     };
 
     const startResendCooldown = useCallback(() => {
+        if (resendCooldownIntervalRef.current != null) {
+            clearInterval(resendCooldownIntervalRef.current);
+            resendCooldownIntervalRef.current = null;
+        }
         setResendCooldown(30);
-        const interval = setInterval(() => {
+        resendCooldownIntervalRef.current = setInterval(() => {
             setResendCooldown((prev) => {
                 if (prev <= 1) {
-                    clearInterval(interval);
+                    if (resendCooldownIntervalRef.current != null) {
+                        clearInterval(resendCooldownIntervalRef.current);
+                        resendCooldownIntervalRef.current = null;
+                    }
                     return 0;
                 }
                 return prev - 1;

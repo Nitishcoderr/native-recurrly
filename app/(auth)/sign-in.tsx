@@ -74,7 +74,10 @@ const SignIn = () => {
                 password,
             });
 
-            if (attempt.status === "complete") {
+            if (
+                attempt.status === "complete" &&
+                attempt.createdSessionId
+            ) {
                 await setActive({ session: attempt.createdSessionId });
                 router.replace(routes.home);
             } else {
