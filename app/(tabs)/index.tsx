@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import { SafeAreaView as RNSafeAreaView } from 'react-native-safe-area-context';
 import { styled } from 'nativewind';
 import { useUser } from '@clerk/clerk-expo';
+import { useRouter } from 'expo-router';
 import images from '@/constants/images';
 import {
   HOME_BALANCE,
@@ -25,6 +26,7 @@ export default function App() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const { subscriptions, addSubscription } = useSubscriptions();
   const { user } = useUser();
+  const router = useRouter();
 
   useEffect(() => {
     setAvatarLoadFailed(false);
@@ -56,7 +58,13 @@ export default function App() {
           ListHeaderComponent={() => (
             <>
               <View className="home-header">
-                <View className="home-user">
+                <Pressable
+                  onPress={() => router.push('/(tabs)/settings')}
+                  accessibilityRole="button"
+                  accessibilityLabel="Open settings"
+                  hitSlop={8}
+                  className="home-user active:opacity-80"
+                >
                   <Image
                     source={avatarSource}
                     className="home-avatar"
@@ -69,7 +77,7 @@ export default function App() {
                   >
                     {displayName}
                   </Text>
-                </View>
+                </Pressable>
                 <Pressable
                   onPress={() => setIsCreateModalOpen(true)}
                   accessibilityRole="button"
@@ -94,10 +102,18 @@ export default function App() {
               </View>
 
               <View className='mb-5'>
-                <ListHeading title="Upcoming" />
+                <ListHeading
+                  title="Upcoming"
+                  onPress={() => router.push('/(tabs)/insights')}
+                />
                 <FlatList
                   data={UPCOMING_SUBSCRIPTIONS}
-                  renderItem={({ item }) => <UpcomingSubscriptionCard {...item} />}
+                  renderItem={({ item }) => (
+                    <UpcomingSubscriptionCard
+                      {...item}
+                      onPress={() => router.push('/(tabs)/subscriptions')}
+                    />
+                  )}
                   keyExtractor={(item) => item.id}
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -105,7 +121,10 @@ export default function App() {
                     <Text className="home-empty-state">No upcoming renewal yet.</Text>
                   }
                 />
-                <ListHeading title="All Subscriptions" />
+                <ListHeading
+                  title="All Subscriptions"
+                  onPress={() => router.push('/(tabs)/subscriptions')}
+                />
               </View>
             </>
           )}
