@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
 import { components,colors  } from "@/constants/theme";
 import { routes } from "@/constants/routes";
+import { SubscriptionsProvider } from "@/lib/subscriptionsContext";
 
 const tabBar = components.tabBar;
 
@@ -35,6 +36,7 @@ export default function TabsLayout() {
   }
 
   return (
+    <SubscriptionsProvider>
     <Tabs screenOptions={{ headerShown: false,
       tabBarShowLabel:false,
       tabBarStyle:{
@@ -62,5 +64,6 @@ export default function TabsLayout() {
         ) }} />
       ))}
     </Tabs>
+    </SubscriptionsProvider>
   );
 }

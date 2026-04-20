@@ -1,13 +1,13 @@
 import '@/global.css';
-import { FlatList, Image, Text, View } from 'react-native';
+import { FlatList, Image, Pressable, Text, View } from 'react-native';
 import dayjs from 'dayjs';
 import { SafeAreaView as RNSafeAreaView } from 'react-native-safe-area-context';
 import { styled } from 'nativewind';
 import { useUser } from '@clerk/clerk-expo';
+import { useRouter } from 'expo-router';
 import images from '@/constants/images';
 import {
   HOME_BALANCE,
-  HOME_SUBSCRIPTIONS,
   UPCOMING_SUBSCRIPTIONS,
 } from '@/constants/data';
 import { icons } from '@/constants/icons';
@@ -15,13 +15,18 @@ import { formatCurrency } from '@/lib/utils';
 import ListHeading from '@/components/ListHeading';
 import UpcomingSubscriptionCard from '@/components/UpcomingSubscriptionCard';
 import SubscriptionCard from '@/components/SubscriptionCard';
+import CreateSubscriptionModal from '@/components/CreateSubscriptionModal';
 import { useEffect, useMemo, useState } from 'react';
+import { useSubscriptions } from '@/lib/subscriptionsContext';
 const SafeAreaView = styled(RNSafeAreaView);
 
 export default function App() {
   const [expandedSubscriptionId, setExpandedSubscriptionId] = useState<string | null>(null);
   const [avatarLoadFailed, setAvatarLoadFailed] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const { subscriptions, addSubscription } = useSubscriptions();
   const { user } = useUser();
+  const router = useRouter();
 
   useEffect(() => {
     setAvatarLoadFailed(false);
@@ -53,7 +58,13 @@ export default function App() {
           ListHeaderComponent={() => (
             <>
               <View className="home-header">
-                <View className="home-user">
+                <Pressable
+                  onPress={() => router.push('/(tabs)/settings')}
+                  accessibilityRole="button"
+                  accessibilityLabel="Open settings"
+                  hitSlop={8}
+                  className="home-user active:opacity-80"
+                >
                   <Image
                     source={avatarSource}
                     className="home-avatar"
@@ -66,11 +77,18 @@ export default function App() {
                   >
                     {displayName}
                   </Text>
-                </View>
-                <Image
-                  source={icons.add}
-                  className="home-add-icon"
-                />
+                </Pressable>
+                <Pressable
+                  onPress={() => setIsCreateModalOpen(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Add subscription"
+                  hitSlop={8}
+                >
+                  <Image
+                    source={icons.add}
+                    className="home-add-icon"
+                  />
+                </Pressable>
               </View>
 
               <View className="home-balance-card">
@@ -84,10 +102,18 @@ export default function App() {
               </View>
 
               <View className='mb-5'>
-                <ListHeading title="Upcoming" />
+                <ListHeading
+                  title="Upcoming"
+                  onPress={() => router.push('/(tabs)/insights')}
+                />
                 <FlatList
                   data={UPCOMING_SUBSCRIPTIONS}
-                  renderItem={({ item }) => <UpcomingSubscriptionCard {...item} />}
+                  renderItem={({ item }) => (
+                    <UpcomingSubscriptionCard
+                      {...item}
+                      onPress={() => router.push('/(tabs)/subscriptions')}
+                    />
+                  )}
                   keyExtractor={(item) => item.id}
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -95,11 +121,14 @@ export default function App() {
                     <Text className="home-empty-state">No upcoming renewal yet.</Text>
                   }
                 />
-                <ListHeading title="All Subscriptions" />
+                <ListHeading
+                  title="All Subscriptions"
+                  onPress={() => router.push('/(tabs)/subscriptions')}
+                />
               </View>
             </>
           )}
-          data={HOME_SUBSCRIPTIONS}
+          data={subscriptions}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <SubscriptionCard
@@ -115,6 +144,11 @@ export default function App() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={<Text className="home-empty-state">No subscriptions yet.</Text>}
           contentContainerClassName='pb-30'
+        />
+        <CreateSubscriptionModal
+          visible={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onCreate={addSubscription}
         />
     </SafeAreaView>
   );
