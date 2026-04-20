@@ -98,8 +98,16 @@ const CreateSubscriptionModal = ({
     }, []);
 
     const parsedPrice = useMemo(() => {
-        const normalized = price.replace(",", ".").trim();
+        let normalized = price.replace(/,/g, ".").trim();
         if (!normalized) return Number.NaN;
+        normalized = normalized.replace(/[^0-9.]/g, "");
+        if (!normalized) return Number.NaN;
+        const firstDot = normalized.indexOf(".");
+        if (firstDot !== -1) {
+            const before = normalized.slice(0, firstDot + 1);
+            const after = normalized.slice(firstDot + 1).replace(/\./g, "");
+            normalized = before + after;
+        }
         const value = Number(normalized);
         return Number.isFinite(value) ? value : Number.NaN;
     }, [price]);
@@ -146,6 +154,7 @@ const CreateSubscriptionModal = ({
             id: generateId(),
             name: name.trim(),
             price: parsedPrice,
+            currency: "USD",
             category,
             status: "active",
             startDate: startDate.toISOString(),
